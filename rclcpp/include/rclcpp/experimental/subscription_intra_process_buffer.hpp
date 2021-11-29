@@ -98,9 +98,9 @@ public:
     rcl_guard_condition_options_t guard_condition_options =
       rcl_guard_condition_get_default_options();
 
-    gc_ = rcl_get_zero_initialized_guard_condition();
+    this->gc_ = rcl_get_zero_initialized_guard_condition();
     rcl_ret_t ret = rcl_guard_condition_init(
-      &gc_, context->get_rcl_context().get(), guard_condition_options);
+      &this->gc_, context->get_rcl_context().get(), guard_condition_options);
 
     if (RCL_RET_OK != ret) {
       throw std::runtime_error(
@@ -110,7 +110,7 @@ public:
 
   virtual ~SubscriptionIntraProcessBuffer()
   {
-    if (rcl_guard_condition_fini(&gc_) != RCL_RET_OK) {
+    if (rcl_guard_condition_fini(&this->gc_) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         "rclcpp",
         "Failed to destroy guard condition: %s",
@@ -125,52 +125,54 @@ public:
     return buffer_->has_data();
   }
 
-  template<typename T>
-  typename std::enable_if_t<
-   std::is_same<T, ROSMessageType>::value &&
-   std::is_same<T, SubscribedType>::value
-  >
-  provide_intra_process_message(std::shared_ptr<const T> message)
+  // template<typename T>
+  // typename std::enable_if_t<
+  //  std::is_same<T, ROSMessageType>::value &&
+  //  std::is_same<T, SubscribedType>::value
+  // >
+  void
+  provide_intra_process_message(ConstMessageSharedPtr message)
   {
     buffer_->add_shared(std::move(message));
     trigger_guard_condition();
   }
 
-  template<typename T>
-  typename std::enable_if_t<
-   std::is_same<T, ROSMessageType>::value &&
-   std::is_same<T, SubscribedType>::value
-  >
-  provide_intra_process_message(std::unique_ptr<T, ROSMessageTypeDeleter> message)
+  // template<typename T>
+  // typename std::enable_if_t<
+  //  std::is_same<T, ROSMessageType>::value &&
+  //  std::is_same<T, SubscribedType>::value
+  // >
+  void
+  provide_intra_process_message(MessageUniquePtr message)
   {
     buffer_->add_unique(std::move(message));
     trigger_guard_condition();
   }
 
-  template<typename T>
-  typename std::enable_if_t<
-   std::is_same<T, ROSMessageType>::value &&
-   !std::is_same<T, SubscribedType>::value
-  >
-  provide_intra_process_message(std::shared_ptr<const T> message)
-  {
-
-    // buffer_->add_shared(std::move(message));
-    // trigger_guard_condition();
-  }
-
-  template<typename T>
-  typename std::enable_if_t<
-   std::is_same<T, ROSMessageType>::value &&
-   !std::is_same<T, SubscribedType>::value
-  >
-  provide_intra_process_message(std::unique_ptr<T, ROSMessageTypeDeleter> message)
-  {
-    // auto unique_ros_msg = this->create_ros_message_unique_ptr();
-    // rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(msg, *unique_ros_msg);
-    // buffer_->add_unique(std::move(msg));
-    // trigger_guard_condition();
-  }
+  // template<typename T>
+  // typename std::enable_if_t<
+  //  std::is_same<T, ROSMessageType>::value &&
+  //  !std::is_same<T, SubscribedType>::value
+  // >
+  // provide_intra_process_message(std::shared_ptr<const T> message)
+  // {
+  //   buffer_->add_shared(std::move(message));
+  //   trigger_guard_condition();
+  // }
+  //
+  // template<typename T>
+  // typename std::enable_if_t<
+  //  std::is_same<T, ROSMessageType>::value &&
+  //  !std::is_same<T, SubscribedType>::value
+  // >
+  // provide_intra_process_message(std::unique_ptr<T, ROSMessageTypeDeleter> message)
+  // {
+  //   void();
+      // auto unique_ros_msg = this->create_ros_message_unique_ptr();
+      // rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(msg, *unique_ros_msg);
+      // buffer_->add_unique(std::move(msg));
+      // trigger_guard_condition();
+//  }
 
   void
   provide_intra_process_data(ConstDataSharedPtr message)
@@ -196,7 +198,7 @@ protected:
   void
   trigger_guard_condition()
   {
-    rcl_ret_t ret = rcl_trigger_guard_condition(&gc_);
+    rcl_ret_t ret = rcl_trigger_guard_condition(&this->gc_);
     (void)ret;
   }
 
