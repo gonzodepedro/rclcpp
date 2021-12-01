@@ -87,7 +87,7 @@ public:
   }
 
   bool
-  is_ready(rcl_wait_set_t * wait_set)
+  is_ready(rcl_wait_set_t * wait_set) override
   {
     (void) wait_set;
     return buffer_->has_data();
@@ -144,14 +144,14 @@ public:
   }
 
   bool
-  use_take_shared_method() const
+  use_take_shared_method() const override
   {
     return buffer_->use_take_shared_method();
   }
 
 protected:
   void
-  trigger_guard_condition()
+  trigger_guard_condition() override
   {
     this->gc_.trigger();
   }

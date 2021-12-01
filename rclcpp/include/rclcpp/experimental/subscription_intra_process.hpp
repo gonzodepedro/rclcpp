@@ -98,7 +98,7 @@ public:
   virtual ~SubscriptionIntraProcess() = default;
 
   std::shared_ptr<void>
-  take_data()
+  take_data() override
   {
     ConstMessageSharedPtr shared_msg;
     MessageUniquePtr unique_msg;
@@ -115,7 +115,7 @@ public:
     );
   }
 
-  void execute(std::shared_ptr<void> & data)
+  void execute(std::shared_ptr<void> & data) override
   {
     execute_impl<SubscribedType>(data);
   }
