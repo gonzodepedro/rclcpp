@@ -174,8 +174,9 @@ public:
    */
   template<
     typename MessageT,
-    typename Alloc = std::allocator<void>,
-    typename Deleter = std::default_delete<MessageT>>
+    typename Alloc,
+    typename Deleter = std::default_delete<MessageT>
+  >
   void
   do_intra_process_publish(
     uint64_t intra_process_publisher_id,
@@ -241,8 +242,9 @@ public:
 
   template<
     typename MessageT,
-    typename Alloc = std::allocator<void>,
-    typename Deleter = std::default_delete<MessageT>>
+    typename Alloc,
+    typename Deleter = std::default_delete<MessageT>
+  >
   std::shared_ptr<const MessageT>
   do_intra_process_publish_and_return_shared(
     uint64_t intra_process_publisher_id,
@@ -340,7 +342,8 @@ private:
   template<
     typename MessageT,
     typename Alloc,
-    typename Deleter>
+    typename Deleter
+  >
   void
   add_shared_msg_to_buffers(
     std::shared_ptr<const MessageT> message,
@@ -394,8 +397,9 @@ private:
 
   template<
     typename MessageT,
-    typename Alloc = std::allocator<void>,
-    typename Deleter = std::default_delete<MessageT>>
+    typename Alloc,
+    typename Deleter
+  >
   void
   add_owned_msg_to_buffers(
     std::unique_ptr<MessageT, Deleter> message,
