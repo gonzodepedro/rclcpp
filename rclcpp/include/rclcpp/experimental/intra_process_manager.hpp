@@ -448,7 +448,7 @@ private:
       auto subscription_base = subscription_it->second.lock();
       if (subscription_base) {
         auto subscription = std::dynamic_pointer_cast<
-          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, Alloc, Deleter>
+          rclcpp::experimental::SubscriptionIntraProcessBuffer<MessageT, PublishedType, Alloc, Deleter>
           >(subscription_base);
         if (nullptr == subscription) {
 
@@ -459,7 +459,7 @@ private:
           if (nullptr == ros_message_subscription) {
             throw std::runtime_error(
                     "failed to dynamic cast SubscriptionIntraProcessBase to "
-                    "SubscriptionIntraProcessBuffer<PublishedType, Alloc, Deleter>, which "
+                    "SubscriptionIntraProcessBuffer<MessageT, PublishedType, Alloc, Deleter>, which "
                     "can happen when the publisher and subscription use different "
                     "allocator types, which is not supported");
           } else {
@@ -518,7 +518,7 @@ private:
         std::cout << "Typed Subscription" << std::endl;
 
         auto subscription = std::dynamic_pointer_cast<
-          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, Alloc, Deleter>
+          rclcpp::experimental::SubscriptionIntraProcessBuffer<MessageT, PublishedType, Alloc, Deleter>
           >(subscription_base);
         if (nullptr == subscription) {
 
@@ -531,7 +531,7 @@ private:
           if (nullptr == ros_message_subscription) {
             throw std::runtime_error(
                     "failed to dynamic cast SubscriptionIntraProcessBase to "
-                    "SubscriptionIntraProcessBuffer<PublishedType, Alloc, Deleter>, which "
+                    "SubscriptionIntraProcessBuffer<MessageT, PublishedType, Alloc, Deleter>, which "
                     "can happen when the publisher and subscription use different "
                     "allocator types, which is not supported");
           } else {
