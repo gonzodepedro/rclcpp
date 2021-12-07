@@ -537,11 +537,13 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    return ipm->template do_intra_process_publish_and_return_shared<PublishedType,
-             AllocatorT>(
+    return ipm->template do_intra_process_publish_and_return_shared<MessageT, T, PublishedType,
+             ROSMessageType, AllocatorT, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter>(
       intra_process_publisher_id_,
       std::move(msg),
-      published_type_allocator_);
+      published_type_allocator_,
+      ros_message_type_allocator_,
+      ros_message_type_deleter_);
   }
 
   template<typename T>
@@ -562,11 +564,13 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    ipm->template do_intra_process_publish_and_return_shared<PublishedType,
-             AllocatorT>(
+    ipm->template do_intra_process_publish_and_return_shared<MessageT, T, PublishedType,
+             ROSMessageType, AllocatorT, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter>(
       intra_process_publisher_id_,
       std::move(msg),
-      published_type_allocator_);
+      published_type_allocator_,
+      ros_message_type_allocator_,
+      ros_message_type_deleter_);
 
     // TODO(clalancette): We are doing the conversion at least twice; inside of
     // IntraProcessManager::do_intra_process_publish_and_return_shared(), and here.

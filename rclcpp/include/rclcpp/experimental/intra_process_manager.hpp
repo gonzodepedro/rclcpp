@@ -241,16 +241,27 @@ public:
   }
 
   template<
+    typename MessageT,
+    typename T,
     typename PublishedType,
+    typename ROSMessageType,
     typename Alloc,
+    typename ROSMessageTypeAllocatorTraits,
+    typename ROSMessageTypeAllocator,
+    typename ROSMessageTypeDeleter,
     typename Deleter = std::default_delete<PublishedType>
   >
   std::shared_ptr<const PublishedType>
   do_intra_process_publish_and_return_shared(
     uint64_t intra_process_publisher_id,
     std::unique_ptr<PublishedType, Deleter> message,
-    typename allocator::AllocRebind<PublishedType, Alloc>::allocator_type & allocator)
+    typename allocator::AllocRebind<PublishedType, Alloc>::allocator_type & allocator,
+    ROSMessageTypeAllocator & ros_message_type_allocator,
+    ROSMessageTypeDeleter & ros_message_type_deleter)
   {
+    (void)ros_message_type_allocator;
+    (void)ros_message_type_deleter;
+
     using MessageAllocTraits = allocator::AllocRebind<PublishedType, Alloc>;
     using MessageAllocatorT = typename MessageAllocTraits::allocator_type;
 
