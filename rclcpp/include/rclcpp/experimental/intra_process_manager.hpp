@@ -173,20 +173,20 @@ public:
    * \param message the message that is being stored.
    */
   template<
-    typename MessageT,
+    typename PublishedType,
     typename Alloc,
-    typename Deleter = std::default_delete<MessageT>
+    typename Deleter = std::default_delete<PublishedType>
   >
   void
   do_intra_process_publish(
     uint64_t intra_process_publisher_id,
-    std::unique_ptr<MessageT, Deleter> message,
-    typename allocator::AllocRebind<MessageT, Alloc>::allocator_type & allocator)
+    std::unique_ptr<PublishedType, Deleter> message,
+    typename allocator::AllocRebind<PublishedType, Alloc>::allocator_type & allocator)
   {
 
     std::cout << "do_intra_process_publish --- " << std::endl;
 
-    using MessageAllocTraits = allocator::AllocRebind<MessageT, Alloc>;
+    using MessageAllocTraits = allocator::AllocRebind<PublishedType, Alloc>;
     using MessageAllocatorT = typename MessageAllocTraits::allocator_type;
 
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
@@ -203,9 +203,9 @@ public:
 
     if (sub_ids.take_ownership_subscriptions.empty()) {
       // None of the buffers require ownership, so we promote the pointer
-      std::shared_ptr<MessageT> msg = std::move(message);
+      std::shared_ptr<PublishedType> msg = std::move(message);
 
-      this->template add_shared_msg_to_buffers<MessageT, Alloc, Deleter>(
+      this->template add_shared_msg_to_buffers<PublishedType, Alloc, Deleter>(
         msg, sub_ids.take_shared_subscriptions);
     } else {
       if (sub_ids.take_shared_subscriptions.size() <= 1) {
@@ -223,35 +223,35 @@ public:
           sub_ids.take_ownership_subscriptions.begin(),
           sub_ids.take_ownership_subscriptions.end());
 
-        this->template add_owned_msg_to_buffers<MessageT, Alloc, Deleter>(
+        this->template add_owned_msg_to_buffers<PublishedType, Alloc, Deleter>(
           std::move(message),
           concatenated_vector,
           allocator);
       } else {
         // Construct a new shared pointer from the message
         // for the buffers that do not require ownership
-        auto shared_msg = std::allocate_shared<MessageT, MessageAllocatorT>(allocator, *message);
+        auto shared_msg = std::allocate_shared<PublishedType, MessageAllocatorT>(allocator, *message);
 
-        this->template add_shared_msg_to_buffers<MessageT, Alloc, Deleter>(
+        this->template add_shared_msg_to_buffers<PublishedType, Alloc, Deleter>(
           shared_msg, sub_ids.take_shared_subscriptions);
-        this->template add_owned_msg_to_buffers<MessageT, Alloc, Deleter>(
+        this->template add_owned_msg_to_buffers<PublishedType, Alloc, Deleter>(
           std::move(message), sub_ids.take_ownership_subscriptions, allocator);
       }
     }
   }
 
   template<
-    typename MessageT,
+    typename PublishedType,
     typename Alloc,
-    typename Deleter = std::default_delete<MessageT>
+    typename Deleter = std::default_delete<PublishedType>
   >
-  std::shared_ptr<const MessageT>
+  std::shared_ptr<const PublishedType>
   do_intra_process_publish_and_return_shared(
     uint64_t intra_process_publisher_id,
-    std::unique_ptr<MessageT, Deleter> message,
-    typename allocator::AllocRebind<MessageT, Alloc>::allocator_type & allocator)
+    std::unique_ptr<PublishedType, Deleter> message,
+    typename allocator::AllocRebind<PublishedType, Alloc>::allocator_type & allocator)
   {
-    using MessageAllocTraits = allocator::AllocRebind<MessageT, Alloc>;
+    using MessageAllocTraits = allocator::AllocRebind<PublishedType, Alloc>;
     using MessageAllocatorT = typename MessageAllocTraits::allocator_type;
 
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
@@ -268,24 +268,24 @@ public:
 
     if (sub_ids.take_ownership_subscriptions.empty()) {
       // If there are no owning, just convert to shared.
-      std::shared_ptr<MessageT> shared_msg = std::move(message);
+      std::shared_ptr<PublishedType> shared_msg = std::move(message);
       if (!sub_ids.take_shared_subscriptions.empty()) {
-        this->template add_shared_msg_to_buffers<MessageT, Alloc, Deleter>(
+        this->template add_shared_msg_to_buffers<PublishedType, Alloc, Deleter>(
           shared_msg, sub_ids.take_shared_subscriptions);
       }
       return shared_msg;
     } else {
       // Construct a new shared pointer from the message for the buffers that
       // do not require ownership and to return.
-      auto shared_msg = std::allocate_shared<MessageT, MessageAllocatorT>(allocator, *message);
+      auto shared_msg = std::allocate_shared<PublishedType, MessageAllocatorT>(allocator, *message);
 
       if (!sub_ids.take_shared_subscriptions.empty()) {
-        this->template add_shared_msg_to_buffers<MessageT, Alloc, Deleter>(
+        this->template add_shared_msg_to_buffers<PublishedType, Alloc, Deleter>(
           shared_msg,
           sub_ids.take_shared_subscriptions);
       }
 
-      this->template add_owned_msg_to_buffers<MessageT, Alloc, Deleter>(
+      this->template add_owned_msg_to_buffers<PublishedType, Alloc, Deleter>(
         std::move(message),
         sub_ids.take_ownership_subscriptions,
         allocator);
