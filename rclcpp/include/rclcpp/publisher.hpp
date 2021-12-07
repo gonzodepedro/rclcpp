@@ -512,7 +512,7 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    ipm->template do_intra_process_publish<PublishedType, AllocatorT>(
+    ipm->template do_intra_process_publish<MessageT, PublishedType, AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
       published_type_allocator_);
