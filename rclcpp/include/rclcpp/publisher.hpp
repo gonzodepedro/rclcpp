@@ -265,10 +265,11 @@ public:
       get_subscription_count() > get_intra_process_subscription_count();
 
     if (inter_process_publish_needed) {
-      auto shared_msg = this->do_intra_process_publish_and_return_shared<T>(std::move(msg));
+      auto shared_msg = this->do_intra_process_publish_and_return_shared<T, ROSMessageTypeDeleter>(
+        std::move(msg));
       this->do_inter_process_publish(*shared_msg);
     } else {
-      this->do_intra_process_publish(std::move(msg));
+      this->do_intra_process_publish<T, ROSMessageTypeDeleter>(std::move(msg));
     }
   }
 
@@ -339,10 +340,11 @@ public:
       get_subscription_count() > get_intra_process_subscription_count();
 
     if (inter_process_publish_needed) {
-      auto shared_msg = this->do_intra_process_publish_and_return_shared<T>(std::move(msg));
+      auto shared_msg = this->do_intra_process_publish_and_return_shared<T, PublishedTypeDeleter>(
+        std::move(msg));
       this->do_inter_process_publish(*shared_msg);
     } else {
-      this->do_intra_process_publish(std::move(msg));
+      this->do_intra_process_publish<T, PublishedTypeDeleter>(std::move(msg));
     }
   }
 
@@ -500,8 +502,9 @@ protected:
     }
   }
 
+  template<typename T, typename Deleter>
   void
-  do_intra_process_publish(std::unique_ptr<PublishedType, PublishedTypeDeleter> msg)
+  do_intra_process_publish(std::unique_ptr<T, PublishedTypeDeleter> msg)
   {
     auto ipm = weak_ipm_.lock();
     if (!ipm) {
@@ -512,8 +515,8 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    ipm->template do_intra_process_publish<MessageT, PublishedType, ROSMessageType, AllocatorT,
-      std::default_delete<PublishedType>, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator,
+    ipm->template do_intra_process_publish<MessageT, T, PublishedType, ROSMessageType, AllocatorT,
+      Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator,
       ROSMessageTypeDeleter, PublishedTypeAllocator>(
       intra_process_publisher_id_,
       std::move(msg),
@@ -522,11 +525,10 @@ protected:
       ros_message_type_deleter_);
   }
 
-
-  template<typename T>
+  template<typename T, typename Deleter>
   std::shared_ptr<const ROSMessageType>
   do_intra_process_publish_and_return_shared(
-    std::unique_ptr<PublishedType, PublishedTypeDeleter> msg)
+    std::unique_ptr<T, PublishedTypeDeleter> msg)
   {
     auto ipm = weak_ipm_.lock();
     if (!ipm) {
@@ -538,7 +540,7 @@ protected:
     }
 
     return ipm->template do_intra_process_publish_and_return_shared<MessageT, T, PublishedType,
-             ROSMessageType, AllocatorT, std::default_delete<PublishedType>,
+             ROSMessageType, AllocatorT, Deleter,
              ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter,
              PublishedTypeAllocator>(
       intra_process_publisher_id_,

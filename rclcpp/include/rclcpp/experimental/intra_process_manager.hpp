@@ -22,20 +22,24 @@
 #include <iterator>
 #include <memory>
 #include <stdexcept>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 #include <typeinfo>
 
+#include "rosidl_runtime_cpp/traits.hpp"
+
 #include "rclcpp/allocator/allocator_deleter.hpp"
-#include "rclcpp/experimental/subscription_intra_process.hpp"
 #include "rclcpp/experimental/ros_message_intra_process_buffer.hpp"
+#include "rclcpp/experimental/subscription_intra_process.hpp"
 #include "rclcpp/experimental/subscription_intra_process_base.hpp"
 #include "rclcpp/experimental/subscription_intra_process_buffer.hpp"
 #include "rclcpp/logger.hpp"
 #include "rclcpp/logging.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp/publisher_base.hpp"
+#include "rclcpp/type_adapter.hpp"
 #include "rclcpp/visibility_control.hpp"
 
 namespace rclcpp
@@ -174,6 +178,7 @@ public:
    */
   template<
     typename MessageT,
+    typename T,
     typename PublishedType,
     typename ROSMessageType,
     typename Alloc,
@@ -186,7 +191,7 @@ public:
   void
   do_intra_process_publish(
     uint64_t intra_process_publisher_id,
-    std::unique_ptr<PublishedType, Deleter> message,
+    std::unique_ptr<T, Deleter> message,
     PublishedTypeAllocator & published_type_allocator,
     ROSMessageTypeAllocator & ros_message_type_allocator,
     ROSMessageTypeDeleter & ros_message_type_deleter)
@@ -207,7 +212,7 @@ public:
 
     if (sub_ids.take_ownership_subscriptions.empty()) {
       // None of the buffers require ownership, so we promote the pointer
-      std::shared_ptr<PublishedType> msg = std::move(message);
+      std::shared_ptr<T> msg = std::move(message);
 
       this->template add_shared_msg_to_buffers<MessageT, PublishedType, ROSMessageType, Alloc,
         Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator>(
@@ -241,7 +246,7 @@ public:
       } else {
         // Construct a new shared pointer from the message
         // for the buffers that do not require ownership
-        auto shared_msg = std::allocate_shared<PublishedType, PublishedTypeAllocator>(
+        auto shared_msg = std::allocate_shared<T, PublishedTypeAllocator>(
           published_type_allocator,
           *message);
 
@@ -281,7 +286,7 @@ public:
   >
   do_intra_process_publish_and_return_shared(
     uint64_t intra_process_publisher_id,
-    std::unique_ptr<PublishedType, Deleter> message,
+    std::unique_ptr<T, Deleter> message,
     PublishedTypeAllocator & published_type_allocator,
     ROSMessageTypeAllocator & ros_message_type_allocator,
     ROSMessageTypeDeleter & ros_message_type_deleter)
@@ -300,7 +305,7 @@ public:
 
     if (sub_ids.take_ownership_subscriptions.empty()) {
       // If there are no owning, just convert to shared.
-      std::shared_ptr<PublishedType> shared_msg = std::move(message);
+      std::shared_ptr<T> shared_msg = std::move(message);
       if (!sub_ids.take_shared_subscriptions.empty()) {
         this->template add_shared_msg_to_buffers<MessageT, PublishedType, ROSMessageType, Alloc,
           Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator>(
@@ -312,7 +317,7 @@ public:
     } else {
       // Construct a new shared pointer from the message for the buffers that
       // do not require ownership and to return.
-      auto shared_msg = std::allocate_shared<PublishedType, PublishedTypeAllocator>(
+      auto shared_msg = std::allocate_shared<T, PublishedTypeAllocator>(
         published_type_allocator,
         *message);
 
@@ -356,7 +361,7 @@ public:
   >
   do_intra_process_publish_and_return_shared(
     uint64_t intra_process_publisher_id,
-    std::unique_ptr<PublishedType, Deleter> message,
+    std::unique_ptr<T, Deleter> message,
     PublishedTypeAllocator & published_type_allocator,
     ROSMessageTypeAllocator & ros_message_type_allocator,
     ROSMessageTypeDeleter & ros_message_type_deleter)
@@ -382,7 +387,7 @@ public:
 
     if (sub_ids.take_ownership_subscriptions.empty()) {
       // If there are no owning, just convert to shared.
-      std::shared_ptr<PublishedType> shared_msg = std::move(message);
+      std::shared_ptr<T> shared_msg = std::move(message);
       if (!sub_ids.take_shared_subscriptions.empty()) {
         this->template add_shared_msg_to_buffers<MessageT, PublishedType, ROSMessageType, Alloc,
           Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator>(
@@ -393,7 +398,7 @@ public:
     } else {
       // Construct a new shared pointer from the message for the buffers that
       // do not require ownership and to return.
-      auto shared_msg = std::allocate_shared<PublishedType, PublishedTypeAllocator>(
+      auto shared_msg = std::allocate_shared<T, PublishedTypeAllocator>(
         published_type_allocator,
         *message);
 
