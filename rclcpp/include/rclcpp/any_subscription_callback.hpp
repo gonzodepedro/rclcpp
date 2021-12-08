@@ -16,7 +16,6 @@
 #define RCLCPP__ANY_SUBSCRIPTION_CALLBACK_HPP_
 
 #include <functional>
-#include <iostream> //TODO remove when removed std::cout s
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
@@ -726,14 +725,14 @@ public:
           callback(message, message_info);
         }
         // conditions for ros message type
-        else if constexpr (std::is_same_v<T, ConstRefROSMessageCallback>) {  // NOLINT
+        else if constexpr (std::is_same_v<T, ConstRefROSMessageCallback>) {  // NOLINT[readability/braces]
           if constexpr (is_ta) {
             auto local = convert_custom_type_to_ros_message_unique_ptr(*message);
             callback(*local);
           } else {
             callback(*message);
           }
-        } else if constexpr (std::is_same_v<T, ConstRefWithInfoROSMessageCallback>) {
+        } else if constexpr (std::is_same_v<T, ConstRefWithInfoROSMessageCallback>) {  // NOLINT[readability/braces]
           if constexpr (is_ta) {
             auto local = convert_custom_type_to_ros_message_unique_ptr(*message);
             callback(*local, message_info);
@@ -802,12 +801,11 @@ public:
     TRACEPOINT(callback_end, static_cast<const void *>(this));
   }
 
- void
+  void
   dispatch_intra_process(
     std::unique_ptr<SubscribedType, SubscribedTypeDeleter> message,
     const rclcpp::MessageInfo & message_info)
   {
-
     TRACEPOINT(callback_start, static_cast<const void *>(this), true);
     // Check if the variant is "unset", throw if it is.
     if (callback_variant_.index() == 0) {
@@ -830,8 +828,7 @@ public:
         } else if constexpr (  // NOLINT[readability/braces]
           is_ta && (
             std::is_same_v<T, UniquePtrCallback>||
-            std::is_same_v<T, SharedPtrCallback>)
-          )
+            std::is_same_v<T, SharedPtrCallback>))
         {
           callback(std::move(message));
         } else if constexpr (  // NOLINT[readability/braces]
@@ -857,14 +854,14 @@ public:
           callback(std::move(message), message_info);
         }
         // conditions for ros message type
-        else if constexpr (std::is_same_v<T, ConstRefROSMessageCallback>) {  // NOLINT
+        else if constexpr (std::is_same_v<T, ConstRefROSMessageCallback>) {  // NOLINT[readability/braces]
           if constexpr (is_ta) {
             auto local = convert_custom_type_to_ros_message_unique_ptr(*message);
             callback(*local);
           } else {
             callback(*message);
           }
-        } else if constexpr (std::is_same_v<T, ConstRefWithInfoROSMessageCallback>) {
+        } else if constexpr (std::is_same_v<T, ConstRefWithInfoROSMessageCallback>) {  // NOLINT[readability/braces]
           if constexpr (is_ta) {
             auto local = convert_custom_type_to_ros_message_unique_ptr(*message);
             callback(*local, message_info);

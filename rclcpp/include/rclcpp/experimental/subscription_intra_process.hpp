@@ -43,14 +43,14 @@ template<
   typename SubscribedType,
   typename SubscribedTypeAlloc = std::allocator<void>,
   typename SubscribedTypeDeleter = std::default_delete<SubscribedType>
-  >
+>
 class SubscriptionIntraProcess
   : public SubscriptionIntraProcessBuffer<
-      MessageT,
-      SubscribedType,
-      SubscribedTypeAlloc,
-      SubscribedTypeDeleter
-    >
+    MessageT,
+    SubscribedType,
+    SubscribedTypeAlloc,
+    SubscribedTypeDeleter
+  >
 {
   using SubscriptionIntraProcessBufferT = SubscriptionIntraProcessBuffer<
     MessageT,
@@ -62,7 +62,8 @@ class SubscriptionIntraProcess
 public:
   RCLCPP_SMART_PTR_DEFINITIONS(SubscriptionIntraProcess)
 
-  using MessageAllocTraits = typename SubscriptionIntraProcessBufferT::SubscribedTypeAllocatorTraits;
+  using MessageAllocTraits =
+    typename SubscriptionIntraProcessBufferT::SubscribedTypeAllocatorTraits;
   using MessageAlloc = typename SubscriptionIntraProcessBufferT::SubscribedTypeAllocator;
   using ConstMessageSharedPtr = typename SubscriptionIntraProcessBufferT::ConstMessageSharedPtr;
   using MessageUniquePtr = typename SubscriptionIntraProcessBufferT::MessageUniquePtr;
@@ -75,7 +76,8 @@ public:
     const std::string & topic_name,
     const rclcpp::QoS & qos_profile,
     rclcpp::IntraProcessBufferType buffer_type)
-  : SubscriptionIntraProcessBuffer<MessageT, SubscribedType, SubscribedTypeAlloc, SubscribedTypeDeleter>(
+  : SubscriptionIntraProcessBuffer<MessageT, SubscribedType, SubscribedTypeAlloc,
+      SubscribedTypeDeleter>(
       allocator,
       context,
       topic_name,
