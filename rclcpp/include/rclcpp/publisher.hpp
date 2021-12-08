@@ -516,8 +516,8 @@ protected:
     }
 
     ipm->template do_intra_process_publish<MessageT, T, PublishedType, ROSMessageType, AllocatorT,
-      Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator,
-      ROSMessageTypeDeleter, PublishedTypeAllocator>(
+      Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter,
+      PublishedTypeAllocatorTraits, PublishedTypeAllocator>(
       intra_process_publisher_id_,
       std::move(msg),
       published_type_allocator_,
@@ -542,7 +542,7 @@ protected:
     return ipm->template do_intra_process_publish_and_return_shared<MessageT, T, PublishedType,
              ROSMessageType, AllocatorT, Deleter,
              ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter,
-             PublishedTypeAllocator>(
+             PublishedTypeAllocatorTraits, PublishedTypeAllocator>(
       intra_process_publisher_id_,
       std::move(msg),
       published_type_allocator_,

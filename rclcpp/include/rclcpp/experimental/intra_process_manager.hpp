@@ -186,6 +186,7 @@ public:
     typename ROSMessageTypeAllocatorTraits,
     typename ROSMessageTypeAllocator,
     typename ROSMessageTypeDeleter,
+    typename PublishedTypeAllocatorTraits,
     typename PublishedTypeAllocator
   >
   void
@@ -237,7 +238,7 @@ public:
 
         this->template add_owned_msg_to_buffers<MessageT, PublishedType, ROSMessageType, Alloc,
           Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter,
-          PublishedTypeAllocator>(
+          PublishedTypeAllocatorTraits, PublishedTypeAllocator>(
           std::move(message),
           concatenated_vector,
           published_type_allocator,
@@ -257,7 +258,7 @@ public:
           ros_message_type_allocator);
         this->template add_owned_msg_to_buffers<MessageT, PublishedType, ROSMessageType, Alloc,
           Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter,
-          PublishedTypeAllocator>(
+          PublishedTypeAllocatorTraits, PublishedTypeAllocator>(
           std::move(message),
           sub_ids.take_ownership_subscriptions,
           published_type_allocator,
@@ -277,6 +278,7 @@ public:
     typename ROSMessageTypeAllocatorTraits,
     typename ROSMessageTypeAllocator,
     typename ROSMessageTypeDeleter,
+    typename PublishedTypeAllocatorTraits,
     typename PublishedTypeAllocator
   >
   typename
@@ -331,7 +333,7 @@ public:
 
       this->template add_owned_msg_to_buffers<MessageT, PublishedType, ROSMessageType, Alloc,
         Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter,
-        PublishedTypeAllocator>(
+        PublishedTypeAllocatorTraits, PublishedTypeAllocator>(
         std::move(message),
         sub_ids.take_ownership_subscriptions,
         published_type_allocator,
@@ -352,6 +354,7 @@ public:
     typename ROSMessageTypeAllocatorTraits,
     typename ROSMessageTypeAllocator,
     typename ROSMessageTypeDeleter,
+    typename PublishedTypeAllocatorTraits,
     typename PublishedTypeAllocator
   >
   typename
@@ -412,7 +415,7 @@ public:
 
       this->template add_owned_msg_to_buffers<MessageT, PublishedType, ROSMessageType, Alloc,
         Deleter, ROSMessageTypeAllocatorTraits, ROSMessageTypeAllocator, ROSMessageTypeDeleter,
-        PublishedTypeAllocator>(
+        PublishedTypeAllocatorTraits, PublishedTypeAllocator>(
         std::move(message),
         sub_ids.take_ownership_subscriptions,
         published_type_allocator,
@@ -537,6 +540,7 @@ private:
     typename ROSMessageTypeAllocatorTraits,
     typename ROSMessageTypeAllocator,
     typename ROSMessageTypeDeleter,
+    typename PublishedTypeAllocatorTraits,
     typename PublishedTypeAllocator
   >
   void
@@ -551,7 +555,6 @@ private:
 
     std::cout << "message has type : " << typeid(message).name() << std::endl;
 
-    using MessageAllocTraits = allocator::AllocRebind<PublishedType, Alloc>;
     using MessageUniquePtr = std::unique_ptr<PublishedType, Deleter>;
 
     for (auto it = subscription_ids.begin(); it != subscription_ids.end(); it++) {
@@ -600,8 +603,8 @@ private:
                 // Copy the message since we have additional subscriptions to serve
                 MessageUniquePtr copy_message;
                 Deleter deleter = message.get_deleter();
-                auto ptr = MessageAllocTraits::allocate(published_type_allocator, 1);
-                MessageAllocTraits::construct(published_type_allocator, ptr, *message);
+                auto ptr = PublishedTypeAllocatorTraits::allocate(published_type_allocator, 1);
+                PublishedTypeAllocatorTraits::construct(published_type_allocator, ptr, *message);
                 copy_message = MessageUniquePtr(ptr, deleter);
 
                 ros_message_subscription->provide_intra_process_message(std::move(copy_message));
@@ -617,8 +620,8 @@ private:
             // Copy the message since we have additional subscriptions to serve
             MessageUniquePtr copy_message;
             Deleter deleter = message.get_deleter();
-            auto ptr = MessageAllocTraits::allocate(published_type_allocator, 1);
-            MessageAllocTraits::construct(published_type_allocator, ptr, *message);
+            auto ptr = PublishedTypeAllocatorTraits::allocate(published_type_allocator, 1);
+            PublishedTypeAllocatorTraits::construct(published_type_allocator, ptr, *message);
             copy_message = MessageUniquePtr(ptr, deleter);
 
             subscription->provide_intra_process_data(std::move(copy_message));

@@ -101,7 +101,7 @@ public:
   {
     std::cout << "--------------Provide Intra Process Message (ConstMessageSharedPtr)" << std::endl;
 
-    if constexpr (!rclcpp::TypeAdapter<SubscribedType>::is_specialized::value) {
+    if constexpr (!rclcpp::TypeAdapter<MessageT>::is_specialized::value) {
       buffer_->add_shared(std::move(message));
       trigger_guard_condition();
     } else {
@@ -117,7 +117,7 @@ public:
   provide_intra_process_message(MessageUniquePtr message)
   {
     std::cout << "--------------Provide Intra Process Message (MessageUniquePtr)" << std::endl;
-    if constexpr (!rclcpp::TypeAdapter<SubscribedType>::is_specialized::value) {
+    if constexpr (!rclcpp::TypeAdapter<MessageT>::is_specialized::value) {
       buffer_->add_unique(std::move(message));
       trigger_guard_condition();
     } else {
