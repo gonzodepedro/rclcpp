@@ -492,7 +492,6 @@ public:
     }
   }
 
-
   // Dispatch when input is a ros message and the output could be anything.
   void
   dispatch(
