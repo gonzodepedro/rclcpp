@@ -46,14 +46,12 @@ template<
 >
 class SubscriptionIntraProcess
   : public SubscriptionIntraProcessBuffer<
-    MessageT,
     SubscribedType,
     SubscribedTypeAlloc,
     SubscribedTypeDeleter
   >
 {
   using SubscriptionIntraProcessBufferT = SubscriptionIntraProcessBuffer<
-    MessageT,
     SubscribedType,
     SubscribedTypeAlloc,
     SubscribedTypeDeleter
@@ -76,7 +74,7 @@ public:
     const std::string & topic_name,
     const rclcpp::QoS & qos_profile,
     rclcpp::IntraProcessBufferType buffer_type)
-  : SubscriptionIntraProcessBuffer<MessageT, SubscribedType, SubscribedTypeAlloc,
+  : SubscriptionIntraProcessBuffer<SubscribedType, SubscribedTypeAlloc,
       SubscribedTypeDeleter>(
       allocator,
       context,
