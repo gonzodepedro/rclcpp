@@ -63,13 +63,13 @@ if(TARGET test_any_service_callback)
   )
   target_link_libraries(test_any_service_callback ${PROJECT_NAME})
 endif()
-# ament_add_gtest(test_any_subscription_callback test_any_subscription_callback.cpp)
-# if(TARGET test_any_subscription_callback)
-#   ament_target_dependencies(test_any_subscription_callback
-#     "test_msgs"
-#   )
-#   target_link_libraries(test_any_subscription_callback ${PROJECT_NAME})
-# endif()
+ament_add_gtest(test_any_subscription_callback test_any_subscription_callback.cpp)
+if(TARGET test_any_subscription_callback)
+  ament_target_dependencies(test_any_subscription_callback
+    "test_msgs"
+  )
+  target_link_libraries(test_any_subscription_callback ${PROJECT_NAME})
+endif()
 ament_add_gtest(test_client test_client.cpp)
 if(TARGET test_client)
   ament_target_dependencies(test_client
