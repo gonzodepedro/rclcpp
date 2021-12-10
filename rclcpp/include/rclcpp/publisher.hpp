@@ -500,7 +500,7 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    ipm->template do_intra_process_publish<PublishedType, AllocatorT>(
+    ipm->template do_intra_process_publish<PublishedType, ROSMessageType, AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
       published_type_allocator_);
@@ -518,7 +518,7 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    ipm->template do_intra_process_publish<ROSMessageType, AllocatorT>(
+    ipm->template do_intra_process_publish<ROSMessageType, ROSMessageType, AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
       ros_message_type_allocator_);
@@ -539,7 +539,7 @@ protected:
     }
 
     return ipm->template do_intra_process_publish_and_return_shared<PublishedType,
-             AllocatorT>(
+             ROSMessageType, AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
       published_type_allocator_);
@@ -558,7 +558,7 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    return ipm->template do_intra_process_publish_and_return_shared<ROSMessageType,
+    return ipm->template do_intra_process_publish_and_return_shared<ROSMessageType, ROSMessageType,
              AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
