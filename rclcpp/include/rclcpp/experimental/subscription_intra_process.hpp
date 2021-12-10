@@ -46,14 +46,12 @@ template<
 >
 class SubscriptionIntraProcess
   : public SubscriptionIntraProcessBuffer<
-    MessageT,
     SubscribedType,
     SubscribedTypeAlloc,
     SubscribedTypeDeleter
   >
 {
   using SubscriptionIntraProcessBufferT = SubscriptionIntraProcessBuffer<
-    MessageT,
     SubscribedType,
     SubscribedTypeAlloc,
     SubscribedTypeDeleter
@@ -65,8 +63,8 @@ public:
   using MessageAllocTraits =
     typename SubscriptionIntraProcessBufferT::SubscribedTypeAllocatorTraits;
   using MessageAlloc = typename SubscriptionIntraProcessBufferT::SubscribedTypeAllocator;
-  using ConstMessageSharedPtr = typename SubscriptionIntraProcessBufferT::ConstMessageSharedPtr;
-  using MessageUniquePtr = typename SubscriptionIntraProcessBufferT::MessageUniquePtr;
+  using ConstMessageSharedPtr = typename SubscriptionIntraProcessBufferT::ConstDataSharedPtr;
+  using MessageUniquePtr = typename SubscriptionIntraProcessBufferT::SubscribedTypeUniquePtr;
   using BufferUniquePtr = typename SubscriptionIntraProcessBufferT::BufferUniquePtr;
 
   SubscriptionIntraProcess(
@@ -76,7 +74,7 @@ public:
     const std::string & topic_name,
     const rclcpp::QoS & qos_profile,
     rclcpp::IntraProcessBufferType buffer_type)
-  : SubscriptionIntraProcessBuffer<MessageT, SubscribedType, SubscribedTypeAlloc,
+  : SubscriptionIntraProcessBuffer<SubscribedType, SubscribedTypeAlloc,
       SubscribedTypeDeleter>(
       allocator,
       context,
