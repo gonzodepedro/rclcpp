@@ -263,7 +263,8 @@ public:
       get_subscription_count() > get_intra_process_subscription_count();
 
     if (inter_process_publish_needed) {
-      auto shared_msg = this->do_intra_process_ros_message_publish_and_return_shared(std::move(msg));
+      auto shared_msg =
+        this->do_intra_process_ros_message_publish_and_return_shared(std::move(msg));
       this->do_inter_process_publish(*shared_msg);
     } else {
       this->do_intra_process_ros_message_publish(std::move(msg));
