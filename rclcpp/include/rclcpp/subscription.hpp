@@ -409,7 +409,8 @@ private:
     MessageT,
     SubscribedType,
     AllocatorT,
-    SubscribedTypeDeleter>;
+    SubscribedTypeDeleter,
+    ROSMessageT>;
   std::shared_ptr<SubscriptionIntraProcessT> subscription_intra_process_;
 };
 

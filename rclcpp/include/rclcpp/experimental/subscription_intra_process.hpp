@@ -42,19 +42,22 @@ template<
   typename MessageT,
   typename SubscribedType,
   typename SubscribedTypeAlloc = std::allocator<void>,
-  typename SubscribedTypeDeleter = std::default_delete<SubscribedType>
+  typename SubscribedTypeDeleter = std::default_delete<SubscribedType>,
+  typename ROSMessageType = SubscribedType
 >
 class SubscriptionIntraProcess
   : public SubscriptionIntraProcessBuffer<
     SubscribedType,
     SubscribedTypeAlloc,
-    SubscribedTypeDeleter
+    SubscribedTypeDeleter,
+    ROSMessageType
   >
 {
   using SubscriptionIntraProcessBufferT = SubscriptionIntraProcessBuffer<
     SubscribedType,
     SubscribedTypeAlloc,
-    SubscribedTypeDeleter
+    SubscribedTypeDeleter,
+    ROSMessageType
   >;
 
 public:
@@ -75,7 +78,7 @@ public:
     const rclcpp::QoS & qos_profile,
     rclcpp::IntraProcessBufferType buffer_type)
   : SubscriptionIntraProcessBuffer<SubscribedType, SubscribedTypeAlloc,
-      SubscribedTypeDeleter>(
+      SubscribedTypeDeleter, ROSMessageType>(
       allocator,
       context,
       topic_name,
