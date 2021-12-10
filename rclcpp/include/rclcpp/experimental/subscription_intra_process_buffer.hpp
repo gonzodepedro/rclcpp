@@ -81,7 +81,6 @@ public:
       qos_profile),
     subscribed_type_allocator_(*allocator)
   {
-
     allocator::set_allocator_for_deleter(&subscribed_type_deleter_, &subscribed_type_allocator_);
 
     // Create the intra-process buffer.
