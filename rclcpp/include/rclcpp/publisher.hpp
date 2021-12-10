@@ -263,10 +263,10 @@ public:
       get_subscription_count() > get_intra_process_subscription_count();
 
     if (inter_process_publish_needed) {
-      auto shared_msg = this->do_intra_process_publish_and_return_shared(std::move(msg));
+      auto shared_msg = this->do_intra_process_ros_message_publish_and_return_shared(std::move(msg));
       this->do_inter_process_publish(*shared_msg);
     } else {
-      this->do_intra_process_publish(std::move(msg));
+      this->do_intra_process_ros_message_publish(std::move(msg));
     }
   }
 
@@ -506,6 +506,24 @@ protected:
       published_type_allocator_);
   }
 
+  void
+  do_intra_process_ros_message_publish(std::unique_ptr<ROSMessageType, ROSMessageTypeDeleter> msg)
+  {
+    auto ipm = weak_ipm_.lock();
+    if (!ipm) {
+      throw std::runtime_error(
+              "intra process publish called after destruction of intra process manager");
+    }
+    if (!msg) {
+      throw std::runtime_error("cannot publish msg which is a null pointer");
+    }
+
+    ipm->template do_intra_process_publish<ROSMessageType, AllocatorT>(
+      intra_process_publisher_id_,
+      std::move(msg),
+      ros_message_type_allocator_);
+  }
+
 
   std::shared_ptr<const PublishedType>
   do_intra_process_publish_and_return_shared(
@@ -526,6 +544,27 @@ protected:
       std::move(msg),
       published_type_allocator_);
   }
+
+  std::shared_ptr<const ROSMessageType>
+  do_intra_process_ros_message_publish_and_return_shared(
+    std::unique_ptr<ROSMessageType, ROSMessageTypeDeleter> msg)
+  {
+    auto ipm = weak_ipm_.lock();
+    if (!ipm) {
+      throw std::runtime_error(
+              "intra process publish called after destruction of intra process manager");
+    }
+    if (!msg) {
+      throw std::runtime_error("cannot publish msg which is a null pointer");
+    }
+
+    return ipm->template do_intra_process_publish_and_return_shared<ROSMessageType,
+             AllocatorT>(
+      intra_process_publisher_id_,
+      std::move(msg),
+      ros_message_type_allocator_);
+  }
+
 
   /// Return a new unique_ptr using the ROSMessageType of the publisher.
   std::unique_ptr<ROSMessageType, ROSMessageTypeDeleter>
