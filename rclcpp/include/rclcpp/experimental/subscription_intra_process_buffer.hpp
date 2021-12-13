@@ -44,8 +44,10 @@ template<
   /// otherwise just MessageT.
   typename ROSMessageType = SubscribedType
 >
-class SubscriptionIntraProcessBuffer : public ROSMessageIntraProcessBuffer<ROSMessageType, typename allocator::AllocRebind<ROSMessageType, Alloc>::allocator_type,
-    allocator::Deleter<typename allocator::AllocRebind<ROSMessageType, Alloc>::allocator_type, ROSMessageType> >
+class SubscriptionIntraProcessBuffer : public ROSMessageIntraProcessBuffer<ROSMessageType,
+    typename allocator::AllocRebind<ROSMessageType, Alloc>::allocator_type,
+    allocator::Deleter<typename allocator::AllocRebind<ROSMessageType, Alloc>::allocator_type,
+    ROSMessageType>>
 {
 public:
   RCLCPP_SMART_PTR_DEFINITIONS(SubscriptionIntraProcessBuffer)
@@ -76,8 +78,8 @@ public:
     const std::string & topic_name,
     const rclcpp::QoS & qos_profile,
     rclcpp::IntraProcessBufferType buffer_type)
-  : ROSMessageIntraProcessBuffer<ROSMessageType, ROSMessageTypeAllocator, ROSMessageTypeDeleter>(context, topic_name,
-      qos_profile),
+  : ROSMessageIntraProcessBuffer<ROSMessageType, ROSMessageTypeAllocator, ROSMessageTypeDeleter>(
+      context, topic_name, qos_profile),
     subscribed_type_allocator_(*allocator)
   {
     allocator::set_allocator_for_deleter(&subscribed_type_deleter_, &subscribed_type_allocator_);

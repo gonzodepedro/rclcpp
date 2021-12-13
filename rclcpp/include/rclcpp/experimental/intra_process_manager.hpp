@@ -179,7 +179,7 @@ public:
     typename ROSMessageType,
     typename Alloc = std::allocator<void>,
     typename Deleter = std::default_delete<MessageT>
-    >
+  >
   void
   do_intra_process_publish(
     uint64_t intra_process_publisher_id,
@@ -239,7 +239,7 @@ public:
     typename ROSMessageType,
     typename Alloc = std::allocator<void>,
     typename Deleter = std::default_delete<MessageT>
-    >
+  >
   std::shared_ptr<const MessageT>
   do_intra_process_publish_and_return_shared(
     uint64_t intra_process_publisher_id,
@@ -362,11 +362,13 @@ private:
       auto subscription_base = subscription_it->second.lock();
       if (subscription_base) {
         auto subscription = std::dynamic_pointer_cast<
-          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, PublishedTypeAllocator, PublishedTypeDeleter, ROSMessageType>
+          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType,
+          PublishedTypeAllocator, PublishedTypeDeleter, ROSMessageType>
           >(subscription_base);
         if (nullptr == subscription) {
           auto ros_message_subscription = std::dynamic_pointer_cast<
-            rclcpp::experimental::ROSMessageIntraProcessBuffer<ROSMessageType, ROSMessageTypeAllocator, ROSMessageTypeDeleter>
+            rclcpp::experimental::ROSMessageIntraProcessBuffer<ROSMessageType,
+            ROSMessageTypeAllocator, ROSMessageTypeDeleter>
             >(subscription_base);
 
           if (nullptr == ros_message_subscription) {
@@ -379,17 +381,22 @@ private:
             if constexpr (rclcpp::TypeAdapter<MessageT>::is_specialized::value) {
               ROSMessageType ros_msg;
               rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(*message, ros_msg);
-              ros_message_subscription->provide_intra_process_message(std::make_shared<ROSMessageType>(ros_msg));
+              ros_message_subscription->provide_intra_process_message(
+                std::make_shared<ROSMessageType>(ros_msg));
             } else {
-                if constexpr (std::is_same<MessageT, ROSMessageType>::value) {
-                  ros_message_subscription->provide_intra_process_message(message);
-                } else {
-                  if constexpr ( std::is_same<typename rclcpp::TypeAdapter<MessageT, ROSMessageType>::ros_message_type, ROSMessageType>::value) {
-                                ROSMessageType ros_msg;
-                                rclcpp::TypeAdapter<MessageT, ROSMessageType>::convert_to_ros_message(*message, ros_msg);
-                                ros_message_subscription->provide_intra_process_message(std::make_shared<ROSMessageType>(ros_msg));
-                  }
+              if constexpr (std::is_same<MessageT, ROSMessageType>::value) {
+                ros_message_subscription->provide_intra_process_message(message);
+              } else {
+                if constexpr (std::is_same<typename rclcpp::TypeAdapter<MessageT,
+                  ROSMessageType>::ros_message_type, ROSMessageType>::value)
+                {
+                  ROSMessageType ros_msg;
+                  rclcpp::TypeAdapter<MessageT, ROSMessageType>::convert_to_ros_message(
+                    *message, ros_msg);
+                  ros_message_subscription->provide_intra_process_message(
+                    std::make_shared<ROSMessageType>(ros_msg));
                 }
+              }
             }
           }
         } else {
@@ -432,11 +439,13 @@ private:
       auto subscription_base = subscription_it->second.lock();
       if (subscription_base) {
         auto subscription = std::dynamic_pointer_cast<
-          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, PublishedTypeAllocator, PublishedTypeDeleter, ROSMessageType>
+          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType,
+          PublishedTypeAllocator, PublishedTypeDeleter, ROSMessageType>
           >(subscription_base);
         if (nullptr == subscription) {
           auto ros_message_subscription = std::dynamic_pointer_cast<
-            rclcpp::experimental::ROSMessageIntraProcessBuffer<ROSMessageType, ROSMessageTypeAllocator, ROSMessageTypeDeleter>
+            rclcpp::experimental::ROSMessageIntraProcessBuffer<ROSMessageType,
+            ROSMessageTypeAllocator, ROSMessageTypeDeleter>
             >(subscription_base);
 
           if (nullptr == ros_message_subscription) {

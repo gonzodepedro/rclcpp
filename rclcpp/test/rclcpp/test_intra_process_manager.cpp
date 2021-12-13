@@ -342,7 +342,7 @@ void Publisher<T, Alloc>::publish(MessageUniquePtr msg)
     throw std::runtime_error("cannot publish msg which is a null pointer");
   }
 
-  ipm->template do_intra_process_publish<T, Alloc>(
+  ipm->template do_intra_process_publish<T, T, Alloc>(
     intra_process_publisher_id_,
     std::move(msg),
     *message_allocator_);

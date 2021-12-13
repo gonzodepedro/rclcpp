@@ -344,7 +344,6 @@ public:
     } else {
       this->do_intra_process_publish(std::move(msg));
     }
-
   }
 
   /// Publish a message on the topic.
