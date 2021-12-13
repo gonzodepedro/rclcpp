@@ -15,7 +15,6 @@
 #ifndef RCLCPP__EXPERIMENTAL__SUBSCRIPTION_INTRA_PROCESS_BUFFER_HPP_
 #define RCLCPP__EXPERIMENTAL__SUBSCRIPTION_INTRA_PROCESS_BUFFER_HPP_
 
-#include <iostream>  // TODO(anyone) remove
 #include <memory>
 #include <string>
 #include <stdexcept>
@@ -116,8 +115,6 @@ public:
   void
   provide_intra_process_message(ConstMessageSharedPtr message)
   {
-    std::cout << "--------------Provide Intra Process Message (ConstMessageSharedPtr)" << std::endl;
-
     if constexpr (std::is_same<SubscribedType, ROSMessageType>::value) {
       buffer_->add_shared(std::move(message));
       trigger_guard_condition();
@@ -130,7 +127,6 @@ public:
   void
   provide_intra_process_message(MessageUniquePtr message)
   {
-    std::cout << "--------------Provide Intra Process Message (MessageUniquePtr)" << std::endl;
     if constexpr (std::is_same<SubscribedType, ROSMessageType>::value) {
       buffer_->add_unique(std::move(message));
       trigger_guard_condition();
@@ -143,7 +139,6 @@ public:
   void
   provide_intra_process_data(ConstDataSharedPtr message)
   {
-    std::cout << "--------------Provide Intra Process DATA (ConstDataSharedPtr)" << std::endl;
     buffer_->add_shared(std::move(message));
     trigger_guard_condition();
   }
@@ -151,7 +146,6 @@ public:
   void
   provide_intra_process_data(SubscribedTypeUniquePtr message)
   {
-    std::cout << "--------------Provide Intra Process DATA (SubscribedTypeUniquePtr)" << std::endl;
     buffer_->add_unique(std::move(message));
     trigger_guard_condition();
   }
