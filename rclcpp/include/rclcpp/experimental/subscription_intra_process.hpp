@@ -67,7 +67,6 @@ public:
   using MessageAllocTraits =
     typename SubscriptionIntraProcessBufferT::SubscribedTypeAllocatorTraits;
   using MessageAlloc = typename SubscriptionIntraProcessBufferT::SubscribedTypeAllocator;
-  //using ConstMessageSharedPtr = typename SubscriptionIntraProcessBufferT::ConstMessageSharedPtr;
   using ConstMessageSharedPtr = typename SubscriptionIntraProcessBufferT::ConstDataSharedPtr;
   using MessageUniquePtr = typename SubscriptionIntraProcessBufferT::SubscribedTypeUniquePtr;
   using BufferUniquePtr = typename SubscriptionIntraProcessBufferT::BufferUniquePtr;

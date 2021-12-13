@@ -15,7 +15,6 @@
 #ifndef RCLCPP__EXPERIMENTAL__SUBSCRIPTION_INTRA_PROCESS_BUFFER_HPP_
 #define RCLCPP__EXPERIMENTAL__SUBSCRIPTION_INTRA_PROCESS_BUFFER_HPP_
 
-#include <iostream>  // TODO(anyone) remove
 #include <memory>
 #include <string>
 #include <stdexcept>
@@ -81,7 +80,6 @@ public:
       qos_profile),
     subscribed_type_allocator_(*allocator)
   {
-
     allocator::set_allocator_for_deleter(&subscribed_type_deleter_, &subscribed_type_allocator_);
 
     // Create the intra-process buffer.
