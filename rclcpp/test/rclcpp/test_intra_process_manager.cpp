@@ -222,7 +222,9 @@ public:
 template<
   typename MessageT,
   typename Alloc = std::allocator<void>,
-  typename Deleter = std::default_delete<MessageT>>
+  typename Deleter = std::default_delete<MessageT>,
+  typename ROSMessageType = MessageT
+>
 class SubscriptionIntraProcessBuffer : public SubscriptionIntraProcessBase
 {
 public:
