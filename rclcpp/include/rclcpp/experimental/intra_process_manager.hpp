@@ -218,7 +218,6 @@ public:
         concatenated_vector.end(),
         sub_ids.take_ownership_subscriptions.begin(),
         sub_ids.take_ownership_subscriptions.end());
-
       this->template add_owned_msg_to_buffers<MessageT, Alloc, Deleter, ROSMessageType>(
         std::move(message),
         concatenated_vector,
@@ -352,6 +351,11 @@ private:
     using ROSMessageTypeAllocator = typename ROSMessageTypeAllocatorTraits::allocator_type;
     using ROSMessageTypeDeleter = allocator::Deleter<ROSMessageTypeAllocator, ROSMessageType>;
 
+    using PublishedTypeAllocatorTraits = allocator::AllocRebind<PublishedType, Alloc>;
+    using PublishedTypeAllocator = typename PublishedTypeAllocatorTraits::allocator_type;
+    using PublishedTypeDeleter = allocator::Deleter<PublishedTypeAllocator, PublishedType>;
+
+
     for (auto id : subscription_ids) {
       auto subscription_it = subscriptions_.find(id);
       if (subscription_it == subscriptions_.end()) {
@@ -360,7 +364,7 @@ private:
       auto subscription_base = subscription_it->second.lock();
       if (subscription_base) {
         auto subscription = std::dynamic_pointer_cast<
-          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, Alloc, Deleter, ROSMessageType>
+          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, PublishedTypeAllocator, PublishedTypeDeleter, ROSMessageType>
           >(subscription_base);
         if (nullptr == subscription) {
           auto ros_message_subscription = std::dynamic_pointer_cast<
@@ -377,10 +381,16 @@ private:
             if constexpr (rclcpp::TypeAdapter<MessageT>::is_specialized::value) {
               ROSMessageType ros_msg;
               rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(*message, ros_msg);
-              ros_message_subscription->provide_intra_process_message(ros_msg);
+              ros_message_subscription->provide_intra_process_message(std::make_shared<ROSMessageType>(ros_msg));
             } else {
                 if constexpr (std::is_same<MessageT, ROSMessageType>::value) {
                   ros_message_subscription->provide_intra_process_message(message);
+                } else {
+                  if constexpr ( std::is_same<typename rclcpp::TypeAdapter<MessageT, ROSMessageType>::ros_message_type, ROSMessageType>::value) {
+                                ROSMessageType ros_msg;
+                                rclcpp::TypeAdapter<MessageT, ROSMessageType>::convert_to_ros_message(*message, ros_msg);
+                                ros_message_subscription->provide_intra_process_message(std::make_shared<ROSMessageType>(ros_msg));
+                  }
                 }
             }
           }
@@ -412,6 +422,10 @@ private:
     using ROSMessageTypeAllocator = typename ROSMessageTypeAllocatorTraits::allocator_type;
     using ROSMessageTypeDeleter = allocator::Deleter<ROSMessageTypeAllocator, ROSMessageType>;
 
+    using PublishedTypeAllocatorTraits = allocator::AllocRebind<PublishedType, Alloc>;
+    using PublishedTypeAllocator = typename PublishedTypeAllocatorTraits::allocator_type;
+    using PublishedTypeDeleter = allocator::Deleter<PublishedTypeAllocator, PublishedType>;
+
     for (auto it = subscription_ids.begin(); it != subscription_ids.end(); it++) {
       auto subscription_it = subscriptions_.find(*it);
       if (subscription_it == subscriptions_.end()) {
@@ -420,7 +434,7 @@ private:
       auto subscription_base = subscription_it->second.lock();
       if (subscription_base) {
         auto subscription = std::dynamic_pointer_cast<
-          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, Alloc, Deleter, ROSMessageType>
+          rclcpp::experimental::SubscriptionIntraProcessBuffer<PublishedType, PublishedTypeAllocator, PublishedTypeDeleter, ROSMessageType>
           >(subscription_base);
         if (nullptr == subscription) {
           auto ros_message_subscription = std::dynamic_pointer_cast<
@@ -429,18 +443,17 @@ private:
 
           if (nullptr == ros_message_subscription) {
             throw std::runtime_error(
-                    "--failed to dynamic cast SubscriptionIntraProcessBase to "
+                    "failed to dynamic cast SubscriptionIntraProcessBase to "
                     "SubscriptionIntraProcessBuffer<MessageT, Alloc, Deleter>, which "
                     "can happen when the publisher and subscription use different "
                     "allocator types, which is not supported");
           } else {
             if constexpr (rclcpp::TypeAdapter<MessageT>::is_specialized::value) {
-              using ROSMessageTypeAllocatorTraits = allocator::AllocRebind<ROSMessageType, Alloc>;
               auto ptr = ROSMessageTypeAllocatorTraits::allocate(allocator, 1);
               ROSMessageTypeAllocatorTraits::construct(allocator, ptr);
-              Deleter deleter = message.get_deleter();
-              auto ros_msg = std::unique_ptr<ROSMessageType, Deleter>(ptr, deleter);
-              rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(message, ros_msg);
+              ROSMessageTypeDeleter deleter = message.get_deleter();
+              rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(message, *ptr);
+              auto ros_msg = std::unique_ptr<ROSMessageType, ROSMessageTypeDeleter>(ptr, deleter);
               ros_message_subscription->provide_intra_process_message(std::move(ros_msg));
             } else {
               if constexpr (std::is_same<MessageT, ROSMessageType>::value) {

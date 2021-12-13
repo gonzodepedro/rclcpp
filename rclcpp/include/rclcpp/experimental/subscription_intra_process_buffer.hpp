@@ -72,7 +72,7 @@ public:
     >::UniquePtr;
 
   SubscriptionIntraProcessBuffer(
-    std::shared_ptr<Alloc> allocator,
+    std::shared_ptr<std::allocator<void>> allocator,
     rclcpp::Context::SharedPtr context,
     const std::string & topic_name,
     const rclcpp::QoS & qos_profile,
@@ -89,7 +89,7 @@ public:
         SubscribedTypeDeleter>(
       buffer_type,
       qos_profile,
-      allocator);
+      std::make_shared<Alloc>(subscribed_type_allocator_));
   }
 
   bool
@@ -117,8 +117,6 @@ public:
   void
   provide_intra_process_message(ConstMessageSharedPtr message)
   {
-    std::cout << "--------------Provide Intra Process Message (ConstMessageSharedPtr)" << std::endl;
-
     if constexpr (std::is_same<SubscribedType, ROSMessageType>::value) {
       buffer_->add_shared(std::move(message));
       trigger_guard_condition();
@@ -131,7 +129,6 @@ public:
   void
   provide_intra_process_message(MessageUniquePtr message)
   {
-    std::cout << "--------------Provide Intra Process Message (MessageUniquePtr)" << std::endl;
     if constexpr (std::is_same<SubscribedType, ROSMessageType>::value) {
       buffer_->add_unique(std::move(message));
       trigger_guard_condition();
@@ -144,7 +141,6 @@ public:
   void
   provide_intra_process_data(ConstDataSharedPtr message)
   {
-    std::cout << "--------------Provide Intra Process DATA (ConstDataSharedPtr)" << std::endl;
     buffer_->add_shared(std::move(message));
     trigger_guard_condition();
   }
@@ -152,7 +148,6 @@ public:
   void
   provide_intra_process_data(SubscribedTypeUniquePtr message)
   {
-    std::cout << "--------------Provide Intra Process DATA (SubscribedTypeUniquePtr)" << std::endl;
     buffer_->add_unique(std::move(message));
     trigger_guard_condition();
   }

@@ -43,7 +43,8 @@ template<
   typename SubscribedType,
   typename SubscribedTypeAlloc = std::allocator<void>,
   typename SubscribedTypeDeleter = std::default_delete<SubscribedType>,
-  typename ROSMessageType = SubscribedType
+  typename ROSMessageType = SubscribedType,
+  typename Alloc = std::allocator<void>
 >
 class SubscriptionIntraProcess
   : public SubscriptionIntraProcessBuffer<
@@ -72,8 +73,8 @@ public:
   using BufferUniquePtr = typename SubscriptionIntraProcessBufferT::BufferUniquePtr;
 
   SubscriptionIntraProcess(
-    AnySubscriptionCallback<MessageT, SubscribedTypeAlloc> callback,
-    std::shared_ptr<SubscribedTypeAlloc> allocator,
+    AnySubscriptionCallback<MessageT, Alloc> callback,
+    std::shared_ptr<Alloc> allocator,
     rclcpp::Context::SharedPtr context,
     const std::string & topic_name,
     const rclcpp::QoS & qos_profile,
@@ -158,7 +159,7 @@ protected:
     shared_ptr.reset();
   }
 
-  AnySubscriptionCallback<MessageT, SubscribedTypeAlloc> any_callback_;
+  AnySubscriptionCallback<MessageT, Alloc> any_callback_;
 };
 
 }  // namespace experimental
