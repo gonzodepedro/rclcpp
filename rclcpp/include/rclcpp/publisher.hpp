@@ -81,7 +81,6 @@ public:
 
   /// MessageT::custom_type if MessageT is a TypeAdapter, otherwise just MessageT.
   using PublishedType = typename rclcpp::TypeAdapter<MessageT>::custom_type;
-  /// MessageT::ros_message_type if MessageT is a TypeAdapter, otherwise just MessageT.
   using ROSMessageType = typename rclcpp::TypeAdapter<MessageT>::ros_message_type;
 
   using PublishedTypeAllocatorTraits = allocator::AllocRebind<PublishedType, AllocatorT>;
@@ -324,7 +323,26 @@ public:
     // process manager and let it decide if it needs to be converted or not.
     // For now, convert it unconditionally and pass it the ROSMessageType
     // publish function specialization.
-    this->do_intra_process_publish(std::move(msg));
+
+    // Avoid allocating when not using intra process.
+    if (!intra_process_is_enabled_) {
+      // In this case we're not using intra process.
+      ROSMessageType ros_msg;
+      rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(*msg, ros_msg);
+      return this->do_inter_process_publish(ros_msg);
+    }
+
+    bool inter_process_publish_needed =
+      get_subscription_count() > get_intra_process_subscription_count();
+
+    if (inter_process_publish_needed) {
+      auto shared_msg = this->do_intra_process_publish_and_return_shared(std::move(msg));
+      ROSMessageType ros_msg;
+      rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(*msg, ros_msg);
+      this->do_inter_process_publish(ros_msg);
+    } else {
+      this->do_intra_process_publish(std::move(msg));
+    }
   }
 
   /// Publish a message on the topic.
@@ -501,7 +519,7 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    ipm->template do_intra_process_publish<PublishedType, AllocatorT>(
+    ipm->template do_intra_process_publish<PublishedType, ROSMessageType, AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
       published_type_allocator_);
@@ -519,7 +537,7 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    ipm->template do_intra_process_publish<ROSMessageType, AllocatorT>(
+    ipm->template do_intra_process_publish<ROSMessageType, ROSMessageType, AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
       ros_message_type_allocator_);
@@ -540,7 +558,7 @@ protected:
     }
 
     return ipm->template do_intra_process_publish_and_return_shared<PublishedType,
-             AllocatorT>(
+             ROSMessageType, AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
       published_type_allocator_);
@@ -559,7 +577,7 @@ protected:
       throw std::runtime_error("cannot publish msg which is a null pointer");
     }
 
-    return ipm->template do_intra_process_publish_and_return_shared<ROSMessageType,
+    return ipm->template do_intra_process_publish_and_return_shared<ROSMessageType, ROSMessageType,
              AllocatorT>(
       intra_process_publisher_id_,
       std::move(msg),
