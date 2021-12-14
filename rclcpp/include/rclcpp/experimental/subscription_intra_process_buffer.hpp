@@ -38,7 +38,7 @@ namespace experimental
 
 template<
   typename SubscribedType,
-  typename Alloc = std::allocator<void>,
+  typename Alloc = std::allocator<SubscribedType>,
   typename Deleter = std::default_delete<SubscribedType>,
   /// MessageT::ros_message_type if MessageT is a TypeAdapter,
   /// otherwise just MessageT.
@@ -73,7 +73,7 @@ public:
     >::UniquePtr;
 
   SubscriptionIntraProcessBuffer(
-    std::shared_ptr<std::allocator<void>> allocator,
+    std::shared_ptr<Alloc> allocator,
     rclcpp::Context::SharedPtr context,
     const std::string & topic_name,
     const rclcpp::QoS & qos_profile,

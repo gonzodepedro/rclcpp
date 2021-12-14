@@ -41,7 +41,7 @@ namespace experimental
 template<
   typename MessageT,
   typename SubscribedType,
-  typename SubscribedTypeAlloc = std::allocator<void>,
+  typename SubscribedTypeAlloc = std::allocator<SubscribedType>,
   typename SubscribedTypeDeleter = std::default_delete<SubscribedType>,
   typename ROSMessageType = SubscribedType,
   typename Alloc = std::allocator<void>
@@ -80,7 +80,7 @@ public:
     rclcpp::IntraProcessBufferType buffer_type)
   : SubscriptionIntraProcessBuffer<SubscribedType, SubscribedTypeAlloc,
       SubscribedTypeDeleter, ROSMessageType>(
-      allocator,
+      std::make_shared<SubscribedTypeAlloc>(*allocator),
       context,
       topic_name,
       qos_profile,
