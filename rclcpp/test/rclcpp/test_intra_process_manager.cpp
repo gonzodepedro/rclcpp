@@ -281,7 +281,7 @@ public:
 
 template<
   typename MessageT,
-  typename Alloc = std::allocator<void>,
+  typename Alloc = std::allocator<MessageT>,
   typename Deleter = std::default_delete<MessageT>>
 class SubscriptionIntraProcess : public SubscriptionIntraProcessBuffer<
     MessageT,
