@@ -319,11 +319,6 @@ public:
   >
   publish(std::unique_ptr<T, PublishedTypeDeleter> msg)
   {
-    // TODO(wjwwood): later update this to give the unique_ptr to the intra
-    // process manager and let it decide if it needs to be converted or not.
-    // For now, convert it unconditionally and pass it the ROSMessageType
-    // publish function specialization.
-
     // Avoid allocating when not using intra process.
     if (!intra_process_is_enabled_) {
       // In this case we're not using intra process.
@@ -337,6 +332,9 @@ public:
 
     if (inter_process_publish_needed) {
       auto shared_msg = this->do_intra_process_publish_and_return_shared(std::move(msg));
+      // TODO(clalancette): This is unnecessarily doing an additional conversion
+      // that may have already been done in do_intra_process_publish_and_return_shared().
+      // We should just reuse that effort.
       ROSMessageType ros_msg;
       rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(*msg, ros_msg);
       this->do_inter_process_publish(ros_msg);
@@ -363,12 +361,7 @@ public:
   >
   publish(const T & msg)
   {
-    // TODO(wjwwood): later update this to give the unique_ptr to the intra
-    // process manager and let it decide if it needs to be converted or not.
-    // For now, convert it unconditionally and pass it the ROSMessageType
-    // publish function specialization.
-
-    // Avoid allocating when not using intra process.
+    // Avoid double allocating when not using intra process.
     if (!intra_process_is_enabled_) {
       // Convert to the ROS message equivalent and publish it.
       ROSMessageType ros_msg;
@@ -376,13 +369,12 @@ public:
       // In this case we're not using intra process.
       return this->do_inter_process_publish(ros_msg);
     }
-    // Otherwise we have to allocate memory in a unique_ptr, convert it,
-    // and pass it along.
+
+    // Otherwise we have to allocate memory in a unique_ptr and pass it along.
     // As the message is not const, a copy should be made.
     // A shared_ptr<const MessageT> could also be constructed here.
-    auto unique_ros_msg = this->create_ros_message_unique_ptr();
-    rclcpp::TypeAdapter<MessageT>::convert_to_ros_message(msg, *unique_ros_msg);
-    this->publish(std::move(unique_ros_msg));
+    auto unique_msg = this->duplicate_type_adapt_message_as_unique_ptr(msg);
+    this->publish(std::move(unique_msg));
   }
 
   void
@@ -601,6 +593,15 @@ protected:
     auto ptr = ROSMessageTypeAllocatorTraits::allocate(ros_message_type_allocator_, 1);
     ROSMessageTypeAllocatorTraits::construct(ros_message_type_allocator_, ptr, msg);
     return std::unique_ptr<ROSMessageType, ROSMessageTypeDeleter>(ptr, ros_message_type_deleter_);
+  }
+
+  /// Duplicate a given type adapted message as a unique_ptr.
+  std::unique_ptr<PublishedType, PublishedTypeDeleter>
+  duplicate_type_adapt_message_as_unique_ptr(const PublishedType & msg)
+  {
+    auto ptr = PublishedTypeAllocatorTraits::allocate(published_type_allocator_, 1);
+    PublishedTypeAllocatorTraits::construct(published_type_allocator_, ptr, msg);
+    return std::unique_ptr<PublishedType, PublishedTypeDeleter>(ptr, published_type_deleter_);
   }
 
   /// Copy of original options passed during construction.
