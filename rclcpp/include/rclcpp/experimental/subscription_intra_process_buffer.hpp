@@ -115,7 +115,7 @@ public:
   }
 
   void
-  provide_intra_process_message(ConstMessageSharedPtr message)
+  provide_intra_process_message(ConstMessageSharedPtr message) override
   {
     if constexpr (std::is_same<SubscribedType, ROSMessageType>::value) {
       buffer_->add_shared(std::move(message));
@@ -127,7 +127,7 @@ public:
   }
 
   void
-  provide_intra_process_message(MessageUniquePtr message)
+  provide_intra_process_message(MessageUniquePtr message) override
   {
     if constexpr (std::is_same<SubscribedType, ROSMessageType>::value) {
       buffer_->add_unique(std::move(message));
