@@ -26,6 +26,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "rclcpp/msg/string.hpp"
+#include "std_msgs/msg/char.hpp"
 
 static const int g_max_loops = 200;
 static const std::chrono::milliseconds g_sleep_per_loop(10);
@@ -72,6 +73,30 @@ struct TypeAdapter<std::string, rclcpp::msg::String>
     (void) source;
     (void) destination;
     throw std::runtime_error("This should not happen");
+  }
+};
+
+template<>
+struct TypeAdapter<char, std_msgs::msg::Char>
+{
+  using is_specialized = std::true_type;
+  using custom_type = char;
+  using ros_message_type = std_msgs::msg::Char;
+
+  static void
+  convert_to_ros_message(
+    const custom_type & source,
+    ros_message_type & destination)
+  {
+    destination.data = source;
+  }
+
+  static void
+  convert_to_custom(
+    const ros_message_type & source,
+    custom_type & destination)
+  {
+    destination = source.data;
   }
 };
 
@@ -508,6 +533,451 @@ TEST_F(
 
     std::string pu_message(message_data);
     pub->publish(pu_message);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+}
+
+TEST_F(
+  test_intra_process_within_one_node,
+  type_adapted_messages_ros_message_ref_pub_received_by_intra_process_subscription)
+{
+  using CharTypeAdapter = rclcpp::TypeAdapter<char, std_msgs::msg::Char>;
+  const char message_data = 'M';
+  const std::string topic_name = "topic_name";
+
+  auto node = rclcpp::Node::make_shared(
+    "test_intra_process",
+    rclcpp::NodeOptions().use_intra_process_comms(true));
+
+  auto pub = node->create_publisher<CharTypeAdapter>(topic_name, 1);
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::string &, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const char & msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::string & with message info, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const char & msg, const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::unique_ptr<std::string>, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::unique_ptr<char> msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::unique_ptr<std::string> with message info, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::unique_ptr<char> msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<std::string>, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<char> msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<std::string> with message info, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<char> msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<const std::string>, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<const char> msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<const std::string> with message info,
+    // publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<const char> msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::shared_ptr<const std::string> &, publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const std::shared_ptr<const char> & msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::shared_ptr<const std::string> & with message info,
+    // publish with rclcpp::msg::String &
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const std::shared_ptr<const char> & msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    std_msgs::msg::Char msg;
+    msg.data = message_data;
+    pub->publish(msg);
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+}
+
+TEST_F(
+  test_intra_process_within_one_node,
+  type_adapted_messages_unique_ptr_ros_message_pub_received_by_intra_process_subscription)
+{
+  using CharTypeAdapter = rclcpp::TypeAdapter<char, std_msgs::msg::Char>;
+  const char message_data = 'M';
+  const std::string topic_name = "topic_name";
+
+  auto node = rclcpp::Node::make_shared(
+    "test_intra_process",
+    rclcpp::NodeOptions().use_intra_process_comms(true));
+
+  auto pub = node->create_publisher<CharTypeAdapter>(topic_name, 1);
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::string &, publish with unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const char & msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::string & with message info, publish with unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const char & msg, const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::unique_ptr<std::string>, publish with unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::unique_ptr<char> msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::unique_ptr<std::string> with message info, publish with unique
+    // std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::unique_ptr<char> msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<std::string>, publish with unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<char> msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<std::string> with message info, publish with
+    // unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<char> msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<const std::string>, publish with unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<const char> msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback std::shared_ptr<const std::string> with message info,
+    // publish with unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      std::shared_ptr<const char> msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::shared_ptr<const std::string> &, publish with
+    // unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const std::shared_ptr<const char> & msg) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
+
+    ASSERT_FALSE(is_received);
+    wait_for_message_to_be_received(is_received, node);
+    ASSERT_TRUE(is_received);
+  }
+  { // create_publisher with TypeAdapt struct, create_subscription with TypeAdapt struct,
+    // callback const std::shared_ptr<const std::string> & with message info,
+    // publish with unique std_msgs::msg::Char
+    bool is_received = false;
+    auto callback =
+      [message_data, &is_received](
+      const std::shared_ptr<const char> & msg,
+      const rclcpp::MessageInfo & message_info) -> void {
+        is_received = true;
+        ASSERT_EQ(message_data, *msg);
+        ASSERT_TRUE(message_info.get_rmw_message_info().from_intra_process);
+      };
+    auto sub = node->create_subscription<CharTypeAdapter>(topic_name, 1, callback);
+
+    auto pu_msg = std::make_unique<std_msgs::msg::Char>();
+    pu_msg->data = message_data;
+    pub->publish(std::move(pu_msg));
 
     ASSERT_FALSE(is_received);
     wait_for_message_to_be_received(is_received, node);
