@@ -74,7 +74,7 @@ add_executable(
   component_container_ev
   src/component_container_ev.cpp
 )
-target_link_libraries(component_container_evt component_manager)
+target_link_libraries(component_container_ev component_manager)
 ament_target_dependencies(component_container_ev
   "rclcpp"
 )
