@@ -394,6 +394,18 @@ if(TARGET test_subscription_publisher_with_same_type_adapter)
     ${cpp_typesupport_target})
 endif()
 
+ament_add_gtest(test_subscription_publisher_with_same_type_adapter_ev_executor test_subscription_publisher_with_same_type_adapter_ev_executor.cpp
+  APPEND_LIBRARY_DIRS "${append_library_dirs}"
+)
+if(TARGET test_subscription_publisher_with_same_type_adapter_ev_executor)
+  ament_target_dependencies(test_subscription_publisher_with_same_type_adapter_ev_executor
+    "statistics_msgs"
+  )
+  target_link_libraries(test_subscription_publisher_with_same_type_adapter_ev_executor
+    ${PROJECT_NAME}
+    ${cpp_typesupport_target})
+endif()
+
 ament_add_gtest(test_publisher_subscription_count_api test_publisher_subscription_count_api.cpp)
 if(TARGET test_publisher_subscription_count_api)
   ament_target_dependencies(test_publisher_subscription_count_api
